@@ -1,16 +1,61 @@
-# React + Vite
+# AI-FrontDesk MPS
+AI-powered self-service kiosk system for Majlis Perbandaran Segamat (MPS)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> SCSE2243: Application Development I | Group 06 | Section 03
+> Lecturer: Dr Alif Ridzuan bin Khairuddin
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Team Members
 
-## React Compiler
+| Name | Matric No | Subsystem |
+|------|-----------|-----------|
+| Muhammad Aniq bin Ahmad Iskander | A24CS0276 | Queue Ticketing, Queue Manager, Feedback & Rating, Notice Board |
+| Muhammad Harith bin Lukman | A24CS0280 | Chatbot Subsystem |
+| Muhammad Amirul Hady bin Zainol Hady | A24CS0125 | Analytics & Insight |
+| Irfan Syahmi bin Azman | A24CS0254 | Request & Service Management |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Module to Frontend Script Mapping
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Chatbot Subsystem — Muhammad Harith
+
+| Sprint | Module | Frontend Script |
+|--------|--------|----------------|
+| 1 | User Interaction Module | [ChatbotPage.jsx](src/pages/chatbot/ChatbotPage.jsx) |
+| 2 | Knowledge Base Module | [KnowledgeBasePage.jsx](src/pages/chatbot/KnowledgeBasePage.jsx) |
+| 3 | Learning & Development Module | [LearningDevPage.jsx](src/pages/chatbot/LearningDevPage.jsx) |
+
+### Queue & Kiosk Operations — Muhammad Aniq
+
+| Sprint | Module | Frontend Script |
+|--------|--------|----------------|
+| 1 | Queue Ticketing Module | [QueueTicketPage.jsx](src/pages/queue/QueueTicketPage.jsx) |
+| 2 | Queue Manager Module | [QueueManagerPage.jsx](src/pages/queue/QueueManagerPage.jsx) |
+| 3 | Feedback & Rating Module | [FeedbackPage.jsx](src/pages/queue/FeedbackPage.jsx) |
+| 4 | Notice Board Module | [NoticeBoardPage.jsx](src/pages/queue/NoticeBoardPage.jsx) |
+
+### Request & Service Management — Irfan Syahmi
+
+| Sprint | Module | Frontend Script |
+|--------|--------|----------------|
+| 1 | Appointment Booking Module | [AppointmentPage.jsx](src/pages/requests/AppointmentPage.jsx) |
+| 2 | Complaint Submission Module | [ComplaintPage.jsx](src/pages/requests/ComplaintPage.jsx) |
+
+### Analytics & Insight — Muhammad Amirul Hady
+
+| Sprint | Module | Frontend Script |
+|--------|--------|----------------|
+| 1 | View User Statistics | [UserStatisticsPage.jsx](src/pages/analytics/UserStatisticsPage.jsx) |
+| 2 | Pattern Recognition | [PatternRecognitionPage.jsx](src/pages/analytics/PatternRecognitionPage.jsx) |
+| 3 | Predictive Forecasting | [PredictiveForecastPage.jsx](src/pages/analytics/PredictiveForecastPage.jsx) |
+
+---
+
+## Running the Project
+
+```bash
+npm install
+npm run dev
+```
