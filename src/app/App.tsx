@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from 'react';
 import { MessageSquare, Hash, Calendar, FileText, MessageCircle } from 'lucide-react';
 import { AskQuestionScreen } from './components/AskQuestionScreen';
@@ -13,6 +14,7 @@ import { AdminPortalHub } from './components/AdminPortalHub';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { NoticeCarousel } from './components/NoticeCarousel';
+import { FeedbackScreen } from './components/FeedbackScreen';
 
 type Screen = 'home' | 'ask-question' | 'queue' | 'appointment' | 'complaint' | 'feedback' | 'queue-manager' | 'admin-hub' | 'admin-appointments' | 'admin-complaints' | 'admin-chatbot-knowledge' | 'admin-learning';
 
@@ -96,6 +98,10 @@ export default function App() {
   if (currentScreen === 'queue-manager') {
     return <QueueManagerScreen onBackToKiosk={() => setCurrentScreen('home')} />;
   }
+
+  if (currentScreen === 'feedback') {
+  return <FeedbackScreen onBack={() => setCurrentScreen('home')} />;
+}
 
   if (currentScreen === 'admin-hub') {
     return (
