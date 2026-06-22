@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Clock, CheckCircle, Home, XCircle, Search } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, Home, XCircle, Search, AlertCircle } from 'lucide-react';
 import { Header } from './Header';
 import { AdminAccessButton } from './AdminAccessButton';
 
@@ -24,23 +24,34 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
   const [icNumber, setIcNumber] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [referenceNumber] = useState(`APT-2024-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [referenceNumber] = useState(`APT-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+
+  // Validation Error State
+  const [nameError, setNameError] = useState('');
+  const [icError, setIcError] = useState('');
+  const [contactError, setContactError] = useState('');
 
   // Manage/Cancel State
   const [manageRef, setManageRef] = useState('');
   const [manageIc, setManageIc] = useState('');
-  const [manageStatus, setManageStatus] = useState<'idle' | 'found' | 'cancelled'>('idle');
+  const [manageStatus, setManageStatus] = useState<'idle' | 'found' | 'cancelled' | 'not_found'>('idle');
+
+  // Mock Data for verification
+  const MOCK_REF = 'APT-2026-1234';
+  const MOCK_IC = '012345679999';
 
   const services: ServiceType[] = [
     { en: "Licensing", ms: "Pelesenan" },
-    { en: "Assessment", ms: "Cukai Taksiran" },
+    { en: "Tax & Assessment", ms: "Cukai & Taksiran" },
     { en: "Permit Application", ms: "Permohonan Permit" }
   ];
 
   const timeSlots = [
+    "8:00 AM - 9:00 AM",
     "9:00 AM - 10:00 AM",
     "11:00 AM - 12:00 PM",
     "2:00 PM - 3:00 PM",
+    "3:00 PM - 4:00 PM",
     "4:00 PM - 5:00 PM"
   ];
 
@@ -54,16 +65,59 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
     return days;
   };
 
+  // Validation Handlers
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFullName(value);
+    if (value && !/^[a-zA-Z\s]+$/.test(value)) {
+      setNameError('Only words and spaces are allowed. No numbers or special symbols.');
+    } else {
+      setNameError('');
+    }
+  };
+
+  const handleIcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setIcNumber(value);
+    if (value && !/^[0-9]+$/.test(value)) {
+      setIcError('Only numbers are allowed. No letters or symbols.');
+    } else {
+      setIcError('');
+    }
+  };
+
+  const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setContactNumber(value);
+    if (value && !/^[0-9]+$/.test(value)) {
+      setContactError('Only numbers are allowed. No letters or symbols.');
+    } else {
+      setContactError('');
+    }
+  };
+
   const handleBookSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedService && selectedDate && selectedTime && fullName && icNumber && contactNumber) {
+    if (
+      selectedService && 
+      selectedDate && 
+      selectedTime && 
+      fullName && 
+      icNumber && 
+      contactNumber && 
+      !nameError && 
+      !icError && 
+      !contactError
+    ) {
       setShowSuccessModal(true);
     }
   };
 
   const handleCheckStatus = () => {
-    if (manageRef && manageIc) {
+    if (manageRef === MOCK_REF && manageIc === MOCK_IC) {
       setManageStatus('found');
+    } else {
+      setManageStatus('not_found');
     }
   };
 
@@ -76,6 +130,9 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
       onBack(); // Go to Main Menu
     } else {
       setViewMode('select'); // Go back to choice menu
+      setManageStatus('idle'); // Reset manage status
+      setManageRef('');
+      setManageIc('');
     }
   };
 
@@ -83,7 +140,6 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
     <div className="size-full bg-slate-50 flex flex-col h-screen overflow-hidden">
       <Header showBackButton onBack={handleBack} />
 
-      {/* FIX: Made justify-center conditional so forms do not get pushed under the header header */}
       <main className={`flex-1 flex flex-col overflow-y-auto px-8 py-6 ${viewMode === 'select' ? 'justify-center' : ''}`}>
         
         {/* Selection Screen */}
@@ -122,7 +178,6 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
 
         {/* Book Appointment Form */}
         {viewMode === 'book' && (
-          // FIX: Optimized inner layout padding and form gaps to look clean and highly readable
           <div className="max-w-4xl mx-auto w-full my-4 bg-white p-8 rounded-[24px] shadow-sm border-2 border-slate-100 animate-in slide-in-from-right-8 duration-300">
             <h2 className="text-3xl mb-6 text-[#1B2A4A] font-bold border-b-2 border-slate-100 pb-4">Book Appointment / Tempah Temu Janji</h2>
             
@@ -207,10 +262,17 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
                       type="text"
                       required
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-4 py-3.5 text-base border-2 border-slate-300 rounded-[16px] focus:outline-none focus:border-[#C9A84C]"
+                      onChange={handleNameChange}
+                      className={`w-full px-4 py-3.5 text-base border-2 rounded-[16px] focus:outline-none transition-colors ${
+                        nameError ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-slate-300 focus:border-[#C9A84C]'
+                      }`}
                       placeholder="Enter your full name"
                     />
+                    {nameError && (
+                      <p className="text-red-500 text-sm mt-1.5 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" /> {nameError}
+                      </p>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -219,10 +281,17 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
                         type="text"
                         required
                         value={icNumber}
-                        onChange={(e) => setIcNumber(e.target.value)}
-                        className="w-full px-4 py-3.5 text-base border-2 border-slate-300 rounded-[16px] focus:outline-none focus:border-[#C9A84C]"
-                        placeholder="e.g. 900101-14-5678"
+                        onChange={handleIcChange}
+                        className={`w-full px-4 py-3.5 text-base border-2 rounded-[16px] focus:outline-none transition-colors ${
+                          icError ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-slate-300 focus:border-[#C9A84C]'
+                        }`}
+                        placeholder="e.g. 900101145678"
                       />
+                      {icError && (
+                        <p className="text-red-500 text-sm mt-1.5 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" /> {icError}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-base text-slate-700 mb-1.5">Contact Number</label>
@@ -230,10 +299,17 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
                         type="tel"
                         required
                         value={contactNumber}
-                        onChange={(e) => setContactNumber(e.target.value)}
-                        className="w-full px-4 py-3.5 text-base border-2 border-slate-300 rounded-[16px] focus:outline-none focus:border-[#C9A84C]"
-                        placeholder="e.g. 012-3456789"
+                        onChange={handleContactChange}
+                        className={`w-full px-4 py-3.5 text-base border-2 rounded-[16px] focus:outline-none transition-colors ${
+                          contactError ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-slate-300 focus:border-[#C9A84C]'
+                        }`}
+                        placeholder="e.g. 0123456789"
                       />
+                      {contactError && (
+                        <p className="text-red-500 text-sm mt-1.5 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" /> {contactError}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -242,7 +318,17 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
               {/* Primary Action */}
               <button
                 type="submit"
-                disabled={!selectedService || !selectedDate || !selectedTime || !fullName || !icNumber || !contactNumber}
+                disabled={
+                  !selectedService || 
+                  !selectedDate || 
+                  !selectedTime || 
+                  !fullName || 
+                  !icNumber || 
+                  !contactNumber ||
+                  !!nameError ||
+                  !!icError ||
+                  !!contactError
+                }
                 className="w-full bg-[#C9A84C] hover:bg-[#B8973B] text-white py-4 rounded-[16px] transition-all duration-200 text-2xl font-bold disabled:bg-slate-300 disabled:cursor-not-allowed mt-4"
               >
                 Confirm & Book Appointment
@@ -253,7 +339,6 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
 
         {/* Manage/Cancel Appointment Form */}
         {viewMode === 'manage' && (
-          // FIX: Cleaned up spacing and structure so input cards fit perfectly on center screen without looking awkward
           <div className="max-w-2xl mx-auto w-full my-auto py-6 animate-in slide-in-from-right-8 duration-300">
             <div className="bg-white p-8 rounded-[24px] shadow-sm border-2 border-slate-100">
               <h2 className="text-3xl text-[#1B2A4A] font-bold mb-6 flex items-center gap-3 border-b-2 border-slate-100 pb-4">
@@ -269,7 +354,7 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
                     value={manageRef}
                     onChange={(e) => setManageRef(e.target.value)}
                     className="w-full px-5 py-3.5 text-lg border-2 border-slate-300 rounded-[16px] focus:outline-none focus:border-[#C9A84C]"
-                    placeholder="e.g. APT-2024-XXXX"
+                    placeholder="e.g. APT-2026-XXXX"
                   />
                 </div>
                 <div>
@@ -294,6 +379,8 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
               {manageStatus === 'found' && (
                 <div className="mt-8 bg-slate-50 p-6 rounded-[16px] shadow-inner border-2 border-slate-200 space-y-4 animate-in fade-in slide-in-from-bottom-4">
                   <h3 className="text-xl font-bold text-[#1B2A4A] mb-2">Appointment Details Found</h3>
+                  
+                  {/* Appointment Data Row */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-white p-3 rounded-xl border border-slate-200">
                       <p className="text-xs text-slate-500 mb-0.5">Department</p>
@@ -301,13 +388,30 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
                     </div>
                     <div className="bg-white p-3 rounded-xl border border-slate-200">
                       <p className="text-xs text-slate-500 mb-0.5">Date</p>
-                      <p className="text-lg font-semibold text-slate-800">24 Oct 2024</p>
+                      <p className="text-lg font-semibold text-slate-800">24 June 2026</p>
                     </div>
                     <div className="bg-white p-3 rounded-xl border border-slate-200">
                       <p className="text-xs text-slate-500 mb-0.5">Time</p>
-                      <p className="text-lg font-semibold text-slate-800">11:00 AM</p>
+                      <p className="text-lg font-semibold text-slate-800">11:00 AM - 12:00 PM</p>
                     </div>
                   </div>
+
+                  {/* Personal Details Data Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-3 rounded-xl border border-slate-200">
+                      <p className="text-xs text-slate-500 mb-0.5">Name</p>
+                      <p className="text-lg font-semibold text-slate-800">Ahmad Bin Abu</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-200">
+                      <p className="text-xs text-slate-500 mb-0.5">IC Number</p>
+                      <p className="text-lg font-semibold text-slate-800">{manageIc}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-200">
+                      <p className="text-xs text-slate-500 mb-0.5">Contact Number</p>
+                      <p className="text-lg font-semibold text-slate-800">0123456789</p>
+                    </div>
+                  </div>
+
                   <button
                     onClick={handleCancelAppointment}
                     className="w-full mt-4 bg-red-50 text-red-600 hover:bg-red-100 border-2 border-red-200 py-4 rounded-[16px] transition-all duration-200 text-xl font-bold flex items-center justify-center gap-2"
@@ -315,6 +419,14 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
                     <XCircle className="w-6 h-6" />
                     Confirm Cancellation
                   </button>
+                </div>
+              )}
+
+              {manageStatus === 'not_found' && (
+                <div className="mt-8 bg-red-50 p-6 rounded-[16px] border-2 border-red-200 text-center animate-in zoom-in duration-300">
+                  <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+                  <p className="text-xl font-bold text-red-700 mb-1">Appointment Not Found</p>
+                  <p className="text-base text-red-600">The details entered do not match any active appointments. Please check and try again.</p>
                 </div>
               )}
 
@@ -333,16 +445,17 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
       {/* Success Modal Overlay */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-2xl w-full text-center relative animate-in zoom-in duration-200">
-            <div className="bg-green-100 rounded-full w-32 h-32 mx-auto mb-8 flex items-center justify-center">
-              <CheckCircle className="w-20 h-20 text-green-600" />
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full text-center relative animate-in zoom-in duration-200">
+            <div className="bg-green-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-green-600" />
             </div>
-            <h2 className="text-5xl font-bold text-[#1B2A4A] mb-4">Booking Successful!</h2>
-            <p className="text-2xl text-slate-600 mb-8">Your appointment has been confirmed.</p>
             
-            <div className="bg-[#C9A84C]/10 border-2 border-[#C9A84C] rounded-[16px] p-8 mb-10">
-              <p className="text-xl text-slate-600 mb-3">Appointment Reference Number</p>
-              <p className="text-5xl font-bold text-[#C9A84C] tracking-wider">{referenceNumber}</p>
+            <h2 className="text-2xl font-bold text-[#1B2A4A] mb-1">Booking Successful!</h2>
+            <p className="text-base text-slate-600 mb-5">Your appointment has been confirmed.</p>
+            
+            <div className="bg-[#C9A84C]/10 border border-[#C9A84C] rounded-xl p-4 mb-5">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Appointment Reference Number</p>
+              <p className="text-3xl font-bold text-[#C9A84C] tracking-wide">{referenceNumber}</p>
             </div>
 
             <button
@@ -355,10 +468,13 @@ export function BookAppointmentScreen({ onBack, onAdminAccess }: BookAppointment
                 setSelectedService(null);
                 setSelectedDate(null);
                 setSelectedTime(null);
+                setNameError('');
+                setIcError('');
+                setContactError('');
               }}
-              className="w-full bg-[#1B2A4A] hover:bg-[#2A4070] text-white py-6 rounded-[16px] transition-all duration-200 text-2xl font-bold flex items-center justify-center gap-3"
+              className="w-full bg-[#1B2A4A] hover:bg-[#2A4070] text-white py-3 rounded-xl transition-all duration-200 text-lg font-bold flex items-center justify-center gap-2"
             >
-              <Home className="w-8 h-8" />
+              <Home className="w-5 h-5" />
               Return to Menu
             </button>
           </div>
