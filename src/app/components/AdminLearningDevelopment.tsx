@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { TrendingUp, LogOut, MessageSquare, AlertCircle, CheckCircle, X, ThumbsUp, ThumbsDown, Calendar, Filter, BarChart3, Lightbulb, ArrowLeft, Users, Eye, FileText, Activity, Brain as BrainIcon, Clock, UserCheck, UserCog } from 'lucide-react';
+import { useState, ReactNode } from 'react';
+import { TrendingUp, LogOut, MessageSquare, AlertCircle, CheckCircle, X, ThumbsUp, ThumbsDown, Calendar, Filter, BarChart3, Lightbulb, ArrowLeft, Users, Activity, Brain as BrainIcon, Clock, UserCheck, FileBarChart2, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 import { Header } from './Header';
 import { UserActivityDashboard } from './analytics/UserActivityDashboard';
 import { VisitorTrackingAnalytics } from './analytics/VisitorTrackingAnalytics';
@@ -10,6 +10,40 @@ import { ServiceRequestAnalysis } from './analytics/ServiceRequestAnalysis';
 import { FAQTrendForecasting } from './analytics/FAQTrendForecasting';
 import { PeakHourPrediction } from './analytics/PeakHourPrediction';
 import { ServiceDemandForecasting } from './analytics/ServiceDemandForecasting';
+
+// Collapsible subsystem card
+function SubsystemCard({
+  title, titleMs, icon: Icon, defaultExpanded = false, children,
+}: {
+  title: string; titleMs: string; icon: React.ElementType; defaultExpanded?: boolean; children: ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  return (
+    <div className="border-2 border-slate-200 rounded-[16px] overflow-hidden bg-white">
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="flex items-center justify-between w-full px-6 py-4 bg-[#1B2A4A] hover:bg-[#243561] text-white transition-colors text-left"
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="w-5 h-5 text-[#C9A84C] flex-shrink-0" strokeWidth={1.5} />
+          <div>
+            <p className="text-base leading-tight">{title}</p>
+            <p className="text-xs text-white/60 leading-tight">{titleMs}</p>
+          </div>
+        </div>
+        {expanded
+          ? <ChevronUp   className="w-5 h-5 text-white/70 flex-shrink-0" />
+          : <ChevronDown className="w-5 h-5 text-white/70 flex-shrink-0" />
+        }
+      </button>
+      {expanded && (
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface AdminLearningDevelopmentProps {
   onBackToKiosk: () => void;
@@ -44,7 +78,6 @@ interface AnalyticsMetric {
   color: string;
 }
 
-type AnalyticsView = 'overview' | 'user-activity' | 'visitor-tracking' | 'management-reporting' | 'customer-behaviour' | 'complaint-pattern' | 'service-request' | 'faq-forecast' | 'peak-hour' | 'service-demand';
 
 export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLearningDevelopmentProps) {
   const [activeTab, setActiveTab] = useState<'logs' | 'analytics' | 'suggestions'>('analytics');
@@ -53,7 +86,7 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
   const [dateRange, setDateRange] = useState('7days');
   const [selectedSuggestion, setSelectedSuggestion] = useState<SuggestedKnowledge | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [analyticsView, setAnalyticsView] = useState<AnalyticsView>('overview');
+  const [analyticsSubView, setAnalyticsSubView] = useState<null | 'user-statistics' | 'pattern-recognition' | 'predictive-forecasting'>(null);
 
   // Mock interaction logs
   const [interactionLogs] = useState<InteractionLog[]>([
@@ -174,20 +207,6 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
 
   const categories = ['All', 'Licensing', 'Operating Hours', 'Assessment Tax', 'Permits', 'Unknown'];
 
-  const analyticsModules = [
-    // User Statistics
-    { id: 'user-activity', title: 'User Activity', titleMs: 'Aktiviti Pengguna', icon: UserCheck, color: 'bg-blue-500', hoverColor: 'hover:bg-blue-600', module: 'User Statistics' },
-    { id: 'visitor-tracking', title: 'Visitor Tracking', titleMs: 'Penjejakan Pelawat', icon: Users, color: 'bg-green-500', hoverColor: 'hover:bg-green-600', module: 'User Statistics' },
-    { id: 'management-reporting', title: 'Management Reports', titleMs: 'Laporan Pengurusan', icon: UserCog, color: 'bg-purple-500', hoverColor: 'hover:bg-purple-600', module: 'User Statistics' },
-    // Pattern Recognition
-    { id: 'customer-behaviour', title: 'Customer Behaviour', titleMs: 'Tingkah Laku Pelanggan', icon: Activity, color: 'bg-orange-500', hoverColor: 'hover:bg-orange-600', module: 'Pattern Recognition' },
-    { id: 'complaint-pattern', title: 'Complaint Patterns', titleMs: 'Corak Aduan', icon: AlertCircle, color: 'bg-red-500', hoverColor: 'hover:bg-red-600', module: 'Pattern Recognition' },
-    { id: 'service-request', title: 'Service Requests', titleMs: 'Permintaan Perkhidmatan', icon: MessageSquare, color: 'bg-indigo-500', hoverColor: 'hover:bg-indigo-600', module: 'Pattern Recognition' },
-    // Predictive Forecasting
-    { id: 'faq-forecast', title: 'FAQ Trends', titleMs: 'Trend Soalan Lazim', icon: BrainIcon, color: 'bg-teal-500', hoverColor: 'hover:bg-teal-600', module: 'Predictive Forecasting' },
-    { id: 'peak-hour', title: 'Peak Hour Prediction', titleMs: 'Ramalan Waktu Puncak', icon: Clock, color: 'bg-pink-500', hoverColor: 'hover:bg-pink-600', module: 'Predictive Forecasting' },
-    { id: 'service-demand', title: 'Service Demand', titleMs: 'Permintaan Perkhidmatan', icon: TrendingUp, color: 'bg-cyan-500', hoverColor: 'hover:bg-cyan-600', module: 'Predictive Forecasting' },
-  ];
 
   const getConfidenceColor = (confidence: string) => {
     switch (confidence) {
@@ -303,16 +322,99 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
         {/* Analytics Tab */}
         {activeTab === 'analytics' && (
           <div className="max-w-7xl mx-auto space-y-8">
-            {analyticsView === 'overview' ? (
+
+            {/* ── Sub-view: User Statistics modules ── */}
+            {analyticsSubView === 'user-statistics' && (
               <>
-                {/* Metrics Grid */}
+                <button
+                  onClick={() => setAnalyticsSubView(null)}
+                  className="flex items-center gap-2 text-[#1B2A4A] hover:text-[#C9A84C] transition-colors text-lg"
+                >
+                  <ArrowLeft className="w-5 h-5" /> Back to Analytics & Insight
+                </button>
+                <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
+                  <h2 className="text-2xl font-bold text-[#1B2A4A] mb-2">User Statistics</h2>
+                  <p className="text-slate-500 mb-6">Statistik Pengguna</p>
+                  <div className="space-y-4">
+                    <SubsystemCard title="User Activity" titleMs="Aktiviti Pengguna" icon={UserCheck} defaultExpanded>
+                      <UserActivityDashboard />
+                    </SubsystemCard>
+                    <SubsystemCard title="Visitor Tracking" titleMs="Penjejakan Pelawat" icon={Users} defaultExpanded>
+                      <VisitorTrackingAnalytics />
+                    </SubsystemCard>
+                    <SubsystemCard title="Management Reports" titleMs="Laporan Pengurusan" icon={FileBarChart2} defaultExpanded>
+                      <ManagementReporting />
+                    </SubsystemCard>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Sub-view: Pattern Recognition modules ── */}
+            {analyticsSubView === 'pattern-recognition' && (
+              <>
+                <button
+                  onClick={() => setAnalyticsSubView(null)}
+                  className="flex items-center gap-2 text-[#1B2A4A] hover:text-[#C9A84C] transition-colors text-lg"
+                >
+                  <ArrowLeft className="w-5 h-5" /> Back to Analytics & Insight
+                </button>
+                <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
+                  <h2 className="text-2xl font-bold text-[#1B2A4A] mb-2">Pattern Recognition</h2>
+                  <p className="text-slate-500 mb-6">Pengecaman Corak</p>
+                  <div className="space-y-4">
+                    <SubsystemCard title="Customer Behaviour" titleMs="Tingkah Laku Pelanggan" icon={Activity} defaultExpanded>
+                      <CustomerBehaviourAnalysis />
+                    </SubsystemCard>
+                    <SubsystemCard title="Complaint Patterns" titleMs="Corak Aduan" icon={AlertCircle} defaultExpanded>
+                      <ComplaintPatternDetection />
+                    </SubsystemCard>
+                    <SubsystemCard title="Service Requests" titleMs="Permintaan Perkhidmatan" icon={ClipboardList} defaultExpanded>
+                      <ServiceRequestAnalysis />
+                    </SubsystemCard>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Sub-view: Predictive Forecasting modules ── */}
+            {analyticsSubView === 'predictive-forecasting' && (
+              <>
+                <button
+                  onClick={() => setAnalyticsSubView(null)}
+                  className="flex items-center gap-2 text-[#1B2A4A] hover:text-[#C9A84C] transition-colors text-lg"
+                >
+                  <ArrowLeft className="w-5 h-5" /> Back to Analytics & Insight
+                </button>
+                <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
+                  <h2 className="text-2xl font-bold text-[#1B2A4A] mb-2">Predictive Forecasting</h2>
+                  <p className="text-slate-500 mb-6">Ramalan Prediktif</p>
+                  <div className="space-y-4">
+                    <SubsystemCard title="FAQ Trends" titleMs="Trend Soalan Lazim" icon={BrainIcon} defaultExpanded>
+                      <FAQTrendForecasting />
+                    </SubsystemCard>
+                    <SubsystemCard title="Peak Hour Prediction" titleMs="Ramalan Waktu Puncak" icon={Clock} defaultExpanded>
+                      <PeakHourPrediction />
+                    </SubsystemCard>
+                    <SubsystemCard title="Service Demand" titleMs="Permintaan Perkhidmatan" icon={TrendingUp} defaultExpanded>
+                      <ServiceDemandForecasting />
+                    </SubsystemCard>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── Overview (no sub-view selected) ── */}
+            {analyticsSubView === null && (
+              <>
+                {/* 1 — Performance Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   {analyticsMetrics.map((metric, idx) => (
                     <div key={idx} className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className={`w-3 h-3 rounded-full ${metric.color}`}></div>
                         <div className="flex items-center gap-1 text-sm">
-                          {metric.trend === 'up' && <TrendingUp className="w-4 h-4 text-green-500" />}
+                          {metric.trend === 'up'  && <TrendingUp className="w-4 h-4 text-green-500" />}
                           {metric.trend === 'down' && <TrendingUp className="w-4 h-4 text-red-500 rotate-180" />}
                         </div>
                       </div>
@@ -322,90 +424,7 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
                   ))}
                 </div>
 
-                {/* Analytics & Insight Modules */}
-                <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
-                  <h2 className="text-2xl font-bold text-[#1B2A4A] mb-6 flex items-center gap-3">
-                    <BarChart3 className="w-6 h-6 text-[#C9A84C]" />
-                    Analytics & Insight
-                  </h2>
-
-                  {/* User Statistics */}
-                  <div className="mb-8">
-                    <h3 className="text-xl font-bold text-[#1B2A4A] mb-4">User Statistics</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      {analyticsModules.filter(m => m.module === 'User Statistics').map((module) => {
-                        const IconComponent = module.icon;
-                        return (
-                          <button
-                            key={module.id}
-                            onClick={() => setAnalyticsView(module.id as AnalyticsView)}
-                            className={`${module.color} ${module.hoverColor} text-white rounded-[16px] p-6 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg`}
-                          >
-                            <div className="flex flex-col items-center gap-3">
-                              <IconComponent className="w-12 h-12" strokeWidth={1.5} />
-                              <div className="text-center">
-                                <div className="text-lg font-bold mb-1">{module.title}</div>
-                                <div className="text-sm opacity-90">{module.titleMs}</div>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Pattern Recognition */}
-                  <div className="mb-8">
-                    <h3 className="text-xl font-bold text-[#1B2A4A] mb-4">Pattern Recognition</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      {analyticsModules.filter(m => m.module === 'Pattern Recognition').map((module) => {
-                        const IconComponent = module.icon;
-                        return (
-                          <button
-                            key={module.id}
-                            onClick={() => setAnalyticsView(module.id as AnalyticsView)}
-                            className={`${module.color} ${module.hoverColor} text-white rounded-[16px] p-6 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg`}
-                          >
-                            <div className="flex flex-col items-center gap-3">
-                              <IconComponent className="w-12 h-12" strokeWidth={1.5} />
-                              <div className="text-center">
-                                <div className="text-lg font-bold mb-1">{module.title}</div>
-                                <div className="text-sm opacity-90">{module.titleMs}</div>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Predictive Forecasting */}
-                  <div>
-                    <h3 className="text-xl font-bold text-[#1B2A4A] mb-4">Predictive Forecasting</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      {analyticsModules.filter(m => m.module === 'Predictive Forecasting').map((module) => {
-                        const IconComponent = module.icon;
-                        return (
-                          <button
-                            key={module.id}
-                            onClick={() => setAnalyticsView(module.id as AnalyticsView)}
-                            className={`${module.color} ${module.hoverColor} text-white rounded-[16px] p-6 transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg`}
-                          >
-                            <div className="flex flex-col items-center gap-3">
-                              <IconComponent className="w-12 h-12" strokeWidth={1.5} />
-                              <div className="text-center">
-                                <div className="text-lg font-bold mb-1">{module.title}</div>
-                                <div className="text-sm opacity-90">{module.titleMs}</div>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Top Questions */}
+                {/* 2 — Most Frequently Asked Questions */}
                 <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
                   <h2 className="text-2xl font-bold text-[#1B2A4A] mb-6 flex items-center gap-3">
                     <BarChart3 className="w-6 h-6 text-[#C9A84C]" />
@@ -414,7 +433,7 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
                   <div className="space-y-4">
                     {topQuestions.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-4">
-                        <div className="bg-[#C9A84C] text-white rounded-[12px] w-12 h-12 flex items-center justify-center font-bold text-lg">
+                        <div className="bg-[#C9A84C] text-white rounded-[12px] w-12 h-12 flex items-center justify-center font-bold text-lg flex-shrink-0">
                           {idx + 1}
                         </div>
                         <div className="flex-1">
@@ -428,7 +447,58 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
                   </div>
                 </div>
 
-                {/* Insights and Recommendations */}
+                {/* 3 — Analytics & Insight navigation buttons */}
+                <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
+                  <h2 className="text-2xl font-bold text-[#1B2A4A] mb-6 flex items-center gap-3">
+                    <BarChart3 className="w-6 h-6 text-[#C9A84C]" />
+                    Analytics & Insight
+                  </h2>
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* User Statistics */}
+                    <button
+                      onClick={() => setAnalyticsSubView('user-statistics')}
+                      className="group bg-[#1B2A4A] hover:bg-[#243561] text-white rounded-[16px] p-6 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg text-left"
+                    >
+                      <UserCheck className="w-10 h-10 text-[#C9A84C] mb-3" strokeWidth={1.5} />
+                      <p className="text-xl font-bold mb-1">User Statistics</p>
+                      <p className="text-sm text-white/60 mb-3">Statistik Pengguna</p>
+                      <p className="text-xs text-white/50">User Activity · Visitor Tracking · Management Reports</p>
+                      <div className="mt-4 flex items-center gap-1 text-[#C9A84C] text-sm">
+                        View modules <ArrowLeft className="w-4 h-4 rotate-180" />
+                      </div>
+                    </button>
+
+                    {/* Pattern Recognition */}
+                    <button
+                      onClick={() => setAnalyticsSubView('pattern-recognition')}
+                      className="group bg-[#1B2A4A] hover:bg-[#243561] text-white rounded-[16px] p-6 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg text-left"
+                    >
+                      <Activity className="w-10 h-10 text-[#C9A84C] mb-3" strokeWidth={1.5} />
+                      <p className="text-xl font-bold mb-1">Pattern Recognition</p>
+                      <p className="text-sm text-white/60 mb-3">Pengecaman Corak</p>
+                      <p className="text-xs text-white/50">Customer Behaviour · Complaint Patterns · Service Requests</p>
+                      <div className="mt-4 flex items-center gap-1 text-[#C9A84C] text-sm">
+                        View modules <ArrowLeft className="w-4 h-4 rotate-180" />
+                      </div>
+                    </button>
+
+                    {/* Predictive Forecasting */}
+                    <button
+                      onClick={() => setAnalyticsSubView('predictive-forecasting')}
+                      className="group bg-[#1B2A4A] hover:bg-[#243561] text-white rounded-[16px] p-6 transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg text-left"
+                    >
+                      <TrendingUp className="w-10 h-10 text-[#C9A84C] mb-3" strokeWidth={1.5} />
+                      <p className="text-xl font-bold mb-1">Predictive Forecasting</p>
+                      <p className="text-sm text-white/60 mb-3">Ramalan Prediktif</p>
+                      <p className="text-xs text-white/50">FAQ Trends · Peak Hour Prediction · Service Demand</p>
+                      <div className="mt-4 flex items-center gap-1 text-[#C9A84C] text-sm">
+                        View modules <ArrowLeft className="w-4 h-4 rotate-180" />
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 — AI-Generated Insights */}
                 <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
                   <h2 className="text-2xl font-bold text-[#1B2A4A] mb-6 flex items-center gap-3">
                     <Lightbulb className="w-6 h-6 text-[#C9A84C]" />
@@ -440,9 +510,7 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
                         <CheckCircle className="w-6 h-6 text-green-600 mt-1" />
                         <div>
                           <h3 className="text-lg font-bold text-green-800 mb-2">Strong Performance Areas</h3>
-                          <p className="text-green-700">
-                            Operating hours and licensing questions have 95% high-confidence responses with positive feedback.
-                          </p>
+                          <p className="text-green-700">Operating hours and licensing questions have 95% high-confidence responses with positive feedback.</p>
                         </div>
                       </div>
                     </div>
@@ -451,9 +519,7 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
                         <AlertCircle className="w-6 h-6 text-yellow-600 mt-1" />
                         <div>
                           <h3 className="text-lg font-bold text-yellow-800 mb-2">Improvement Opportunity</h3>
-                          <p className="text-yellow-700">
-                            Pet licensing questions (12 occurrences) have low confidence. Recommend adding dedicated knowledge entry.
-                          </p>
+                          <p className="text-yellow-700">Pet licensing questions (12 occurrences) have low confidence. Recommend adding a dedicated knowledge entry.</p>
                         </div>
                       </div>
                     </div>
@@ -473,31 +539,8 @@ export function AdminLearningDevelopment({ onBackToKiosk, onBackToHub }: AdminLe
                   </div>
                 </div>
               </>
-            ) : (
-              <>
-                {/* Back Button */}
-                <button
-                  onClick={() => setAnalyticsView('overview')}
-                  className="bg-white hover:bg-slate-50 text-[#1B2A4A] px-6 py-3 rounded-[16px] transition-all duration-200 active:scale-95 flex items-center gap-2 border-2 border-slate-200 shadow-sm"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  Back to Analytics Overview
-                </button>
-
-                {/* Render Analytics Component */}
-                <div className="bg-white rounded-[24px] shadow-lg border-2 border-slate-100 p-8">
-                  {analyticsView === 'user-activity' && <UserActivityDashboard />}
-                  {analyticsView === 'visitor-tracking' && <VisitorTrackingAnalytics />}
-                  {analyticsView === 'management-reporting' && <ManagementReporting />}
-                  {analyticsView === 'customer-behaviour' && <CustomerBehaviourAnalysis />}
-                  {analyticsView === 'complaint-pattern' && <ComplaintPatternDetection />}
-                  {analyticsView === 'service-request' && <ServiceRequestAnalysis />}
-                  {analyticsView === 'faq-forecast' && <FAQTrendForecasting />}
-                  {analyticsView === 'peak-hour' && <PeakHourPrediction />}
-                  {analyticsView === 'service-demand' && <ServiceDemandForecasting />}
-                </div>
-              </>
             )}
+
           </div>
         )}
 
